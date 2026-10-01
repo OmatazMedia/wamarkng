@@ -233,7 +233,7 @@ final class Blog
     }
 
     /** Only local media paths or direct image URLs are allowed as covers. */
-    private static function sanitizeSrc(string $src): string
+    public static function sanitizeSrc(string $src): string
     {
         if ($src === '') {
             return '';

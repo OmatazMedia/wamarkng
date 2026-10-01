@@ -328,6 +328,11 @@ switch (true) {
         require_installed();
         json_out(['ok' => true, 'categories' => Blog::categories()]);
 
+    /* ------------------------------------------------ public homepage feature media */
+    case $route === 'feature' && $method === 'GET':
+        require_installed();
+        json_out(['ok' => true, 'features' => FeatureMedia::effective()]);
+
     /* ------------------------------------------------ admin: dashboard data */
     case $route === 'admin/summary' && $method === 'GET':
         require_admin();
@@ -473,6 +478,29 @@ switch (true) {
             json_out(['ok' => false, 'error' => 'invalid_id'], 422);
         }
         json_out(Blog::delete($id));
+
+    /* ------------------------------------------------ admin: homepage feature images */
+    case $route === 'admin/feature' && $method === 'GET':
+        require_admin();
+        json_out([
+            'ok'       => true,
+            'features' => FeatureMedia::effective(),
+            'defaults' => FeatureMedia::defaults(),
+        ]);
+
+    case $route === 'admin/feature/update' && $method === 'POST':
+        require_admin();
+        require_csrf($in);
+        $no = Util::str($in, 'no', 8);
+        if (!in_array($no, FeatureMedia::FEATURES, true)) {
+            json_out(['ok' => false, 'error' => 'invalid_feature', 'message' => 'Unknown feature card.'], 422);
+        }
+        $images = is_array($in['images'] ?? null) ? $in['images'] : [];
+        json_out([
+            'ok'     => true,
+            'no'     => $no,
+            'images' => FeatureMedia::set($no, $images),
+        ]);
 
     /* ------------------------------------------------ admin: user management */
     case $route === 'admin/users' && $method === 'GET':

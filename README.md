@@ -115,10 +115,11 @@ contact form and the admin dashboard. It stores everything in **SQLite**
 
 `GET ?route=` status · `GET ?route=csrf` token+captcha · `POST ?route=contact` ·
 `POST ?route=auth/check` / `auth/password` / `auth/change-password` / `auth/logout` ·
-`GET ?route=auth/me` · `GET ?route=gallery` · `GET ?route=blog` · `GET ?route=blog/post&slug=…` · `GET ?route=settings` ·
+`GET ?route=auth/me` · `GET ?route=gallery` · `GET ?route=blog` · `GET ?route=blog/post&slug=…` · `GET ?route=feature` · `GET ?route=settings` ·
 admin: `GET admin/summary`, `GET admin/messages`, `POST gallery`,
 `POST gallery/update`, `POST gallery/delete`, `GET admin/blog`,
 `POST admin/blog/create` / `admin/blog/update` / `admin/blog/delete`,
+`GET admin/feature`, `POST admin/feature/update`,
 `GET admin/users`, `POST admin/users/create` / `admin/users/update` / `admin/users/delete`
 
 ### Blog — live without rebuilds
@@ -130,6 +131,18 @@ runtime, so publishing is visible immediately after upload of the
 original export — no re-export of the site is ever needed for new
 posts.
 
+### Homepage feature-card images — live without rebuilds
+
+The three homepage feature cards (Security Systems / Technical
+Surveillance / Oil & Gas Solutions) open a detail modal with an
+image set. The `Feature Card Images` dashboard tab manages each
+set: add by local path or direct image URL, pick from the
+Projects gallery, reorder, remove, or reset to the built-in
+defaults. The homepage fetches `?route=feature` at runtime, so
+changes appear immediately — no re-export needed. Entries are
+validated (local paths without `..`, or image URLs), de-duped
+and capped at six per card.
+
 ### Email reply-to
 
 Outgoing mail is sent from `no-reply@<domain>` with **Reply-To**
@@ -140,7 +153,8 @@ a customer is a plain "Reply" in any mail client.
 ### Local end-to-end tests
 
 Requires PHP 8+ with pdo_sqlite (CLI). The suite installs fresh, logs in,
-exercises the contact + gallery + blog + users + lockout flows — **101 checks**:
+exercises the contact + gallery + blog + feature images + users
++ lockout flows — **123 checks**:
 
 ```bash
 npm run build

@@ -11,7 +11,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconArrowRight,
   IconCheckSquare,
@@ -54,7 +54,39 @@ function Hero() {
 /* ================= Feature cards + detail modal ================= */
 function Features() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  // Dashboard-controlled image sets, fetched live so changes to
+  // the three feature modals show up without a rebuild.
+  const [overrides, setOverrides] = useState<Record<string, string[]> | null>(null);
   const open = openIdx === null ? null : features[openIdx];
+
+  const loadImages = useCallback(async () => {
+    try {
+      const res = await fetch("/api/index.php?route=feature", {
+        cache: "no-store",
+      });
+      const d = await res.json();
+      if (d?.ok) {
+        setOverrides((d.features as Record<string, string[]>) ?? null);
+      }
+    } catch {
+      /* offline: the built-in defaults keep working */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadImages();
+    // Pick up image changes made in the dashboard while the page sits open.
+    const onVis = () => {
+      if (document.visibilityState === "visible") loadImages();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [loadImages]);
+
+  function imagesFor(no: string, fallback: string[]): string[] {
+    const over = overrides?.[no];
+    return over && over.length > 0 ? over : fallback;
+  }
 
   // Close on Escape and lock page scroll while the modal is up.
   useEffect(() => {
@@ -130,7 +162,7 @@ function Features() {
             </ul>
 
             <div className="fmodal-imgs">
-              {open.modal.images.map((src) => (
+              {imagesFor(open.no, open.modal.images).map((src) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={src} alt="" aria-hidden="true" key={src} />
               ))}

@@ -306,6 +306,73 @@ expect "title too short rejected (422)" "422" "$S"
 read_req POST "/api/index.php?route=admin/blog/delete" "{\"id\":$DRAFT_ID}"
 expect "post delete ok" "200" "$S"
 
+echo "== 7g. Homepage feature-card images (public feed + admin control) =="
+get_csrf
+read_req GET "/api/index.php?route=feature"
+printf '%s' "$B" | grep -q '"/images/cctv.webp"' && ok "public feature feed serves built-in defaults" || bad "feature feed shape: $B"
+printf '%s' "$B" | grep -q '"03"' && ok "all three feature cards served" || bad "feature keys missing: $B"
+
+read_req GET "/api/index.php?route=admin/feature"
+expect "admin feature read ok" "200" "$S"
+printf '%s' "$B" | grep -q '"defaults"' && ok "admin payload includes built-in defaults" || bad "defaults missing: $B"
+
+# Override card 01: a local path and a direct image URL survive, poison is dropped.
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"01\",\"images\":[\"/images/new-cctv.webp\",\"https://example.com/drone.jpg\",\"../etc/passwd\",\"javascript:alert(1)\"]}"
+expect "feature update ok" "200" "$S"
+printf '%s' "$B" | grep -q '"/images/new-cctv.webp"' && ok "local image accepted" || bad "local image missing: $B"
+printf '%s' "$B" | grep -q '"https://example.com/drone.jpg"' && ok "remote image URL accepted" || bad "remote URL missing: $B"
+printf '%s' "$B" | grep -q 'passwd' && bad "path traversal leaked through" || ok "path traversal filtered"
+printf '%s' "$B" | grep -q 'javascript' && bad "javascript: URL leaked through" || ok "javascript: URL filtered"
+
+read_req GET "/api/index.php?route=feature"
+printf '%s' "$B" | grep -q '"/images/new-cctv.webp"' && ok "override live on the public feed (no rebuild)" || bad "override not live: $B"
+printf '%s' "$B" | grep -q '"/images/cctv.webp"' && bad "stale default still served" || ok "default replaced on the public feed"
+
+# An empty set clears the override and restores the built-in defaults.
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"01\",\"images\":[]}"
+expect "feature reset ok" "200" "$S"
+read_req GET "/api/index.php?route=feature"
+printf '%s' "$B" | grep -q '"/images/cctv.webp"' && ok "defaults restored after reset" || bad "defaults not restored: $B"
+
+# The list is capped at six images.
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"02\",\"images\":[\"/images/a.webp\",\"/images/b.webp\",\"/images/c.webp\",\"/images/d.webp\",\"/images/e.webp\",\"/images/f.webp\",\"/images/g.webp\"]}"
+COUNT=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo count($d["images"] ?? []);')
+[ "$COUNT" = "6" ] && ok "image list capped at 6" || bad "cap wrong (got $COUNT)"
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"02\",\"images\":[]}"
+expect "card 02 reset ok" "200" "$S"
+
+# Unknown cards are rejected outright.
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"99\",\"images\":[\"/images/x.webp\"]}"
+expect "unknown feature rejected (422)" "422" "$S"
+
+# Anonymous writers are turned away.
+SAVE_JAR="$JAR"; JAR="$(mktemp)"; get_csrf
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"01\",\"images\":[\"/images/x.webp\"]}"
+expect "anonymous feature update rejected (401)" "401" "$S"
+rm -f "$JAR"; JAR="$SAVE_JAR"; get_csrf
+
+# Feature images are content-tier (like blog/gallery/settings), so
+# editors manage them too — only user management is admin-only.
+read_req POST "/api/index.php?route=admin/users/create" "{\"name\":\"Feat Editor\",\"email\":\"feat-editor@wamarkng.com\",\"role\":\"editor\"}"
+FEAT_ED_ID=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["user"]["id"] ?? 0;')
+FEAT_ED_EMAIL=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["user"]["email"] ?? "";')
+FEAT_ED_PW=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["password"] ?? "";')
+SAVE_JAR="$JAR"; JAR="$(mktemp)"; get_csrf
+read_req POST "/api/index.php?route=auth/password" "{\"email\":\"$FEAT_ED_EMAIL\",\"password\":\"$FEAT_ED_PW\"}"
+read_req POST "/api/index.php?route=auth/change-password" "{\"new_password\":\"FeatEditor2Pass\"}"
+read_req GET "/api/index.php?route=admin/feature"
+expect "editor can read feature images" "200" "$S"
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"02\",\"images\":[\"/images/editor-pick.webp\"]}"
+expect "editor can update feature images" "200" "$S"
+read_req GET "/api/index.php?route=feature"
+printf '%s' "$B" | grep -q '"/images/editor-pick.webp"' && ok "editor change live on the public feed" || bad "editor change not live: $B"
+read_req POST "/api/index.php?route=admin/feature/update" "{\"no\":\"02\",\"images\":[]}"
+expect "editor reset ok" "200" "$S"
+read_req POST "/api/index.php?route=auth/logout"
+rm -f "$JAR"; JAR="$SAVE_JAR"; get_csrf
+read_req POST "/api/index.php?route=admin/users/delete" "{\"id\":$FEAT_ED_ID}"
+expect "temp editor deleted" "200" "$S"
+
 echo "== 8. Lockout: 4 wrong passwords => 4h email lock =="
 get_csrf
 for i in 1 2 3; do
