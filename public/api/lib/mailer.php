@@ -12,12 +12,35 @@
  *
  * Mailer — sends via PHP mail() from no-reply@<site-domain>.
  * Nothing for the site owner to configure on cPanel (PHP mail is builtin).
+ * Every mail carries Reply-To info@<site-domain> (auto-detected from the
+ * host) so hitting "Reply" in any mail client reaches the site inbox —
+ * except the enquiry notification, which replies to the visitor instead.
  */
 
 declare(strict_types=1);
 
 final class Mailer
 {
+    /**
+     * The reply-to identity for outgoing mail: info@<detected domain>.
+     * Used automatically — nothing to configure.
+     */
+    public static function replyToInfo(): string
+    {
+        return 'info@' . Config::mailDomain();
+    }
+
+    /** Shared header block. $replyTo is "Name <addr>" or a bare address. */
+    private static function headers(string $site, string $from, string $replyTo): array
+    {
+        return [
+            'From: ' . $site . ' <' . $from . '>',
+            'Reply-To: ' . $replyTo,
+            'X-Mailer: WAMARK-API/' . PHP_VERSION,
+            'MIME-Version: 1.0',
+            'Content-Type: text/plain; charset=utf-8',
+        ];
+    }
     /**
      * Send the contact notification.
      * @return array{ok:bool, error?:string, sent?:bool}
@@ -50,13 +73,8 @@ final class Mailer
         ];
         $body = implode("\r\n", $lines);
 
-        $headers = [
-            'From: ' . $site . ' <' . $from . '>',
-            'Reply-To: ' . $msg['name'] . ' <' . $msg['email'] . '>',
-            'X-Mailer: WAMARK-API/' . PHP_VERSION,
-            'MIME-Version: 1.0',
-            'Content-Type: text/plain; charset=utf-8',
-        ];
+        $headers = self::headers($site, $from, $msg['name'] . ' <' . $msg['email'] . '>');
+        // Visitor replies to the enquiry should reach the person who wrote it.
 
         // Header-injection guard: strip CR/LF from any value we embed.
         $to = str_replace(["\r", "\n"], '', $to);
@@ -81,6 +99,79 @@ final class Mailer
                 ? 'Message saved. The host mail() did not confirm delivery; it was spooled in api/data/mail-spool/ for retry.'
                 : 'Message saved but delivery was not confirmed. Check the hosting mail settings.',
         ];
+    }
+
+    /**
+     * Confirmation to the VISITOR after they submit the contact form.
+     * Replies land in the site inbox (info@<domain>, auto-detected).
+     */
+    public static function sendContactConfirmation(array $msg): void
+    {
+        $site = Settings::get('site_name', Config::DEFAULT_SITE['site_name']);
+        $from = Config::mailFrom();
+        $to = str_replace(["\r", "\n"], '', (string) $msg['email']);
+        if (!Util::emailValid($to)) {
+            return;
+        }
+
+        $subject = 'We received your message — ' . $site;
+        $body = implode("\r\n", [
+            'Hello ' . $msg['name'] . ',',
+            '',
+            'Thank you for contacting ' . $site . '.',
+            'We have received your message and our team will get back to you shortly.',
+            '',
+            'Your message:',
+            '----------',
+            ($msg['subject'] !== '' ? 'Subject: ' . $msg['subject'] . "\r\n" : '') . $msg['message'],
+            '----------',
+            '',
+            '— ' . $site,
+        ]);
+
+        $headers = self::headers($site, $from, self::replyToInfo());
+        $encodedSubject = '=?UTF-8?B?' . base64_encode(str_replace(["\r", "\n"], '', $subject)) . '?=';
+        @mail($to, $encodedSubject, $body, implode("\r\n", $headers));
+    }
+
+    /**
+     * Welcome mail to a newly created dashboard user. The one-time
+     * password is included; replies reach info@<domain>.
+     */
+    public static function sendUserWelcome(array $user, string $password): void
+    {
+        $site = Settings::get('site_name', Config::DEFAULT_SITE['site_name']);
+        $from = Config::mailFrom();
+        $to = str_replace(["\r", "\n"], '', (string) $user['email']);
+        if (!Util::emailValid($to)) {
+            return;
+        }
+
+        $subject = 'Your ' . $site . ' dashboard account';
+        $body = implode("\r\n", [
+            'Hello ' . $user['name'] . ',',
+            '',
+            'An account was created for you on the ' . $site . ' dashboard.',
+            '',
+            'Sign in at: ' . self::siteUrl() . '/login/',
+            'Email    : ' . $user['email'],
+            'Password : ' . $password,
+            '',
+            'You will be asked to set a new password at first login.',
+            '',
+            '— ' . $site,
+        ]);
+
+        $headers = self::headers($site, $from, self::replyToInfo());
+        $encodedSubject = '=?UTF-8?B?' . base64_encode(str_replace(["\r", "\n"], '', $subject)) . '?=';
+        @mail($to, $encodedSubject, $body, implode("\r\n", $headers));
+    }
+
+    /** Best-effort site origin for links inside mails. */
+    private static function siteUrl(): string
+    {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        return $scheme . '://' . Config::domain();
     }
 
     /** Last-resort spool so a message is never silently lost. */

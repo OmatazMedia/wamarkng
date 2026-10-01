@@ -26,6 +26,7 @@ require_once __DIR__ . '/lib/settings.php';
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/mailer.php';
 require_once __DIR__ . '/lib/gallery.php';
+require_once __DIR__ . '/lib/blog.php';
 
 /**
  * Standard JSON response + exit.

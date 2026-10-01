@@ -22,15 +22,17 @@ import GalleryManager from "@/components/dashboard/GalleryManager";
 import MessagesPanel from "@/components/dashboard/MessagesPanel";
 import SettingsPanel from "@/components/dashboard/SettingsPanel";
 import UsersPanel from "@/components/dashboard/UsersPanel";
+import BlogPanel from "@/components/dashboard/BlogPanel";
 
 type User = { email: string; name: string; must_change: boolean; role?: string };
-type Summary = { messages: number; gallery: number; users: number; mail_from: string };
+type Summary = { messages: number; gallery: number; users: number; posts: number; mail_from: string };
 
-type Tab = "overview" | "gallery" | "messages" | "users" | "settings";
+type Tab = "overview" | "gallery" | "blog" | "messages" | "users" | "settings";
 
 const TAB_TITLES: Record<Tab, string> = {
   overview: "Dashboard",
   gallery: "Gallery Projects",
+  blog: "Blog Posts",
   messages: "Messages",
   users: "User Management",
   settings: "Site Settings",
@@ -99,6 +101,7 @@ export default function DashboardPage() {
             {([
               "overview",
               "gallery",
+              "blog",
               "messages",
               ...(user.role === "admin" ? (["users"] as Tab[]) : []),
               "settings",
@@ -172,6 +175,10 @@ export default function DashboardPage() {
                     <strong>{summary?.messages ?? "—"}</strong>
                   </div>
                   <div className="dash-card">
+                    <small>Blog posts</small>
+                    <strong>{summary?.posts ?? "—"}</strong>
+                  </div>
+                  <div className="dash-card">
                     <small>Dashboard users</small>
                     <strong>{summary?.users ?? "—"}</strong>
                   </div>
@@ -189,6 +196,7 @@ export default function DashboardPage() {
             )}
 
             {tab === "gallery" && <GalleryManager />}
+            {tab === "blog" && <BlogPanel />}
             {tab === "messages" && <MessagesPanel />}
             {tab === "users" && <UsersPanel />}
             {tab === "settings" && <SettingsPanel />}

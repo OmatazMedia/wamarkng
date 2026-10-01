@@ -108,6 +108,25 @@ final class DB
         self::addColumn($pdo, 'users', 'role', "TEXT NOT NULL DEFAULT 'admin'");
         self::addColumn($pdo, 'users', 'status', "TEXT NOT NULL DEFAULT 'active'");
         self::addColumn($pdo, 'users', 'created_by', 'INTEGER');
+        // Blog — edited from the dashboard, served live through the API so
+        // the static export never needs a rebuild for new posts.
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS posts (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                slug         TEXT NOT NULL UNIQUE,
+                title        TEXT NOT NULL,
+                category     TEXT NOT NULL DEFAULT 'News',
+                excerpt      TEXT NOT NULL DEFAULT '',
+                body         TEXT NOT NULL DEFAULT '',
+                cover        TEXT NOT NULL DEFAULT '',
+                author       TEXT NOT NULL DEFAULT '',
+                status       TEXT NOT NULL DEFAULT 'draft',
+                published_at INTEGER,
+                created_at   INTEGER NOT NULL,
+                updated_at   INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_posts_pub ON posts (status, published_at DESC);
+        ");
     }
 
     private static function addColumn(PDO $pdo, string $table, string $column, string $ddl): void

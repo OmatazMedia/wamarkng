@@ -268,6 +268,44 @@ expect "user delete ok" "200" "$S"
 read_req GET "/api/index.php?route=admin/users"
 printf '%s' "$B" | grep -q 'editor@wamarkng.com' && bad "deleted user still listed" || ok "deleted user gone"
 
+echo "== 7f. Blog: public feed + admin CRUD =="
+get_csrf
+read_req GET "/api/index.php?route=blog"
+printf '%s' "$B" | grep -q '"posts":\[\]' && ok "empty public blog feed" || bad "public feed shape: $B"
+
+T1='WAMARK completes CCTV rollout'
+B1='The Lekki warehouse rollout is complete.\n\nNight vision verified.'
+read_req POST "/api/index.php?route=admin/blog/create" "{\"title\":\"$T1\",\"category\":\"Projects\",\"excerpt\":\"32-camera deployment finished.\",\"body\":\"$B1\",\"status\":\"published\"}"
+expect "post create+publish ok" "200" "$S"
+SLUG=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["slug"] ?? "";')
+[ -n "$SLUG" ] && ok "slug generated" || bad "no slug"
+
+read_req GET "/api/index.php?route=blog"
+printf '%s' "$B" | grep -q 'CCTV rollout' && ok "published post in public feed" || bad "post missing from feed"
+read_req GET "/api/index.php?route=blog/post&slug=$SLUG"
+expect "post readable by slug" "200" "$S"
+read_req GET "/api/index.php?route=blog/post&slug=does-not-exist"
+expect "unknown slug 404" "404" "$S"
+
+T2='Draft post'
+read_req POST "/api/index.php?route=admin/blog/create" "{\"title\":\"$T2\",\"body\":\"Hidden content.\"}"
+DRAFT_ID=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["id"] ?? 0;')
+[ "$DRAFT_ID" -gt 0 ] 2>/dev/null && ok "draft created (id $DRAFT_ID)" || bad "draft create failed"
+read_req GET "/api/index.php?route=blog"
+printf '%s' "$B" | grep -q 'Draft post' && bad "draft leaked to public feed" || ok "drafts hidden from public feed"
+
+read_req POST "/api/index.php?route=admin/blog/update" "{\"id\":$DRAFT_ID,\"status\":\"published\"}"
+expect "draft publish ok" "200" "$S"
+read_req GET "/api/index.php?route=blog"
+printf '%s' "$B" | grep -q 'Draft post' && ok "published draft now public" || bad "published draft missing"
+read_req POST "/api/index.php?route=admin/blog/update" "{\"id\":$DRAFT_ID,\"status\":\"draft\"}"
+expect "unpublish ok" "200" "$S"
+
+read_req POST "/api/index.php?route=admin/blog/create" "{\"title\":\"x\"}"
+expect "title too short rejected (422)" "422" "$S"
+read_req POST "/api/index.php?route=admin/blog/delete" "{\"id\":$DRAFT_ID}"
+expect "post delete ok" "200" "$S"
+
 echo "== 8. Lockout: 4 wrong passwords => 4h email lock =="
 get_csrf
 for i in 1 2 3; do

@@ -115,14 +115,32 @@ contact form and the admin dashboard. It stores everything in **SQLite**
 
 `GET ?route=` status · `GET ?route=csrf` token+captcha · `POST ?route=contact` ·
 `POST ?route=auth/check` / `auth/password` / `auth/change-password` / `auth/logout` ·
-`GET ?route=auth/me` · `GET ?route=gallery` · `GET ?route=settings` ·
+`GET ?route=auth/me` · `GET ?route=gallery` · `GET ?route=blog` · `GET ?route=blog/post&slug=…` · `GET ?route=settings` ·
 admin: `GET admin/summary`, `GET admin/messages`, `POST gallery`,
-`POST gallery/update`, `POST gallery/delete`
+`POST gallery/update`, `POST gallery/delete`, `GET admin/blog`,
+`POST admin/blog/create` / `admin/blog/update` / `admin/blog/delete`,
+`GET admin/users`, `POST admin/users/create` / `admin/users/update` / `admin/users/delete`
+
+### Blog — live without rebuilds
+
+The blog is wired to the dashboard (`Blog Posts` tab): write, edit,
+publish/unpublish and delete. The public pages `/blog/` and
+`/blog/post/?slug=…` ship as static shells that fetch the API at
+runtime, so publishing is visible immediately after upload of the
+original export — no re-export of the site is ever needed for new
+posts.
+
+### Email reply-to
+
+Outgoing mail is sent from `no-reply@<domain>` with **Reply-To**
+`info@<domain>` (both auto-detected from the host). Enquiry
+notifications reply to the visitor's own address instead, so answering
+a customer is a plain "Reply" in any mail client.
 
 ### Local end-to-end tests
 
 Requires PHP 8+ with pdo_sqlite (CLI). The suite installs fresh, logs in,
-exercises the contact + gallery + lockout flows — **46 checks**:
+exercises the contact + gallery + blog + users + lockout flows — **101 checks**:
 
 ```bash
 npm run build

@@ -143,6 +143,12 @@ switch (true) {
             'subject' => $subject, 'message' => $message, 'ip' => $ip,
         ]);
 
+        // Auto-confirmation to the visitor (replies reach info@<domain>).
+        Mailer::sendContactConfirmation([
+            'name' => $name, 'email' => $email,
+            'subject' => $subject, 'message' => $message,
+        ]);
+
         json_out([
             'ok'      => true,
             'sent'    => $mail['sent'] ?? false,
@@ -297,18 +303,45 @@ switch (true) {
         require_installed();
         json_out(['ok' => true, 'items' => Gallery::listPublic()]);
 
+    /* ------------------------------------------------ public blog */
+    case $route === 'blog' && $method === 'GET':
+        require_installed();
+        $cat = Util::str($_GET, 'category', 60);
+        $limit = (int) ($_GET['limit'] ?? 60);
+        $offset = (int) ($_GET['offset'] ?? 0);
+        json_out([
+            'ok'         => true,
+            'posts'      => Blog::listPublic($limit, $offset, $cat),
+            'categories' => Blog::categories(),
+        ]);
+
+    case $route === 'blog/post' && $method === 'GET':
+        require_installed();
+        $slug = Util::str($_GET, 'slug', Blog::MAX_SLUG);
+        $post = $slug !== '' ? Blog::findPublishedBySlug($slug) : null;
+        if ($post === null) {
+            json_out(['ok' => false, 'error' => 'not_found'], 404);
+        }
+        json_out(['ok' => true, 'post' => $post]);
+
+    case $route === 'blog/categories' && $method === 'GET':
+        require_installed();
+        json_out(['ok' => true, 'categories' => Blog::categories()]);
+
     /* ------------------------------------------------ admin: dashboard data */
     case $route === 'admin/summary' && $method === 'GET':
         require_admin();
         $messages = (int) DB::pdo()->query('SELECT COUNT(*) FROM contact_messages')->fetchColumn();
         $gallery  = (int) DB::pdo()->query('SELECT COUNT(*) FROM gallery')->fetchColumn();
         $users    = (int) DB::pdo()->query('SELECT COUNT(*) FROM users')->fetchColumn();
+        $posts    = (int) DB::pdo()->query('SELECT COUNT(*) FROM posts')->fetchColumn();
         json_out([
             'ok'   => true,
             'data' => [
                 'messages' => $messages,
                 'gallery'  => $gallery,
                 'users'    => $users,
+                'posts'    => $posts,
                 'domain'   => Config::domain(),
                 'mail_from' => Config::mailFrom(),
             ],
@@ -411,6 +444,36 @@ switch (true) {
         }
         json_out(Gallery::delete($id));
 
+    /* ------------------------------------------------ admin: blog */
+    case $route === 'admin/blog' && $method === 'GET':
+        require_admin();
+        json_out(['ok' => true, 'posts' => Blog::listAll()]);
+
+    case $route === 'admin/blog/create' && $method === 'POST':
+        $actor = require_admin();
+        require_csrf($in);
+        $res = Blog::create($in, (string) ($actor['name'] ?: 'Staff'));
+        json_out($res, $res['ok'] ? 200 : 422);
+
+    case $route === 'admin/blog/update' && $method === 'POST':
+        require_admin();
+        require_csrf($in);
+        $id = (int) ($in['id'] ?? 0);
+        if ($id <= 0) {
+            json_out(['ok' => false, 'error' => 'invalid_id'], 422);
+        }
+        $res = Blog::update($id, $in);
+        json_out($res, $res['ok'] ? 200 : ($res['error'] === 'not_found' ? 404 : 422));
+
+    case $route === 'admin/blog/delete' && $method === 'POST':
+        require_admin();
+        require_csrf($in);
+        $id = (int) ($in['id'] ?? 0);
+        if ($id <= 0) {
+            json_out(['ok' => false, 'error' => 'invalid_id'], 422);
+        }
+        json_out(Blog::delete($id));
+
     /* ------------------------------------------------ admin: user management */
     case $route === 'admin/users' && $method === 'GET':
         $actor = require_admin();
@@ -448,6 +511,10 @@ switch (true) {
         );
         $st->execute([$email, $name, password_hash($password, PASSWORD_DEFAULT), $role, time(), (int) $actor['id']]);
         $id = (int) DB::pdo()->lastInsertId();
+
+        // Email the credentials (replies reach info@<domain>); the one-time
+        // password is still shown in the dashboard either way.
+        Mailer::sendUserWelcome(['email' => $email, 'name' => $name], $password);
         json_out([
             'ok'       => true,
             'id'       => $id,
