@@ -1,0 +1,14 @@
+# Dependencies & build output
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local dev/test servers
+php-server.log
+serve.log
+*.log
+
+# Tooling
+.freebuff/

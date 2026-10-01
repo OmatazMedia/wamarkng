@@ -1,0 +1,121 @@
+<!doctype html>
+<!--
+  Built by Omataz Media — Web Development & Design
+  Website   : https://www.omatazmedia.com.ng
+  Email     : hello@omatazmedia.com.ng
+  Phone     : +234 9024599289, +234 7037373304
+  WhatsApp  : https://wa.me/message/M3QUHNVONY6NK1
+  Social    : @omatazmedia — Facebook · Instagram · X · YouTube
+  GitHub    : https://github.com/omatazmedia
+  Contact   : Johnson Toluwani
+
+  WAMARK API installation wizard (one-time; self-locks after install).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>WAMARK — Installation Wizard</title>
+  <style>
+    :root { --green:#57b960; --green-dark:#379237; --navy:#101828; --dark:#0b0f19; --muted:#667085; --border:#e8eef3; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:"Segoe UI", Roboto, Arial, sans-serif; background:#f4f7fa; color:var(--navy); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .card { background:#fff; width:100%; max-width:560px; border-radius:14px; box-shadow:0 18px 50px rgba(16,24,40,.12); overflow:hidden; }
+    .head { background:var(--dark); color:#fff; padding:28px 32px; }
+    .head h1 { font-size:20px; letter-spacing:.3px; }
+    .head p { color:#9fb0c9; font-size:13px; margin-top:6px; }
+    .body { padding:28px 32px 32px; }
+    .step-label { font-size:11px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--green-dark); }
+    h2 { font-size:17px; margin:8px 0 18px; }
+    .check { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:14px; }
+    .check:last-of-type { border-bottom:0; }
+    .dot { width:14px; height:14px; border-radius:50%; flex:0 0 14px; background:#e5e9f0; position:relative; }
+    .dot.ok { background:var(--green); }
+    .dot.bad { background:#d92d20; }
+    .btn { display:inline-block; width:100%; margin-top:22px; padding:13px 20px; background:var(--green); color:#fff; font-weight:700; font-size:15px; border:0; border-radius:9px; cursor:pointer; }
+    .btn:hover { background:var(--green-dark); }
+    .btn[disabled] { opacity:.55; cursor:not-allowed; }
+    .err { margin-top:14px; background:#fef3f2; border:1px solid #fda29b; color:#b42318; padding:11px 14px; border-radius:9px; font-size:13.5px; display:none; }
+    .creds { display:none; margin-top:20px; background:#f0fdf2; border:1px solid #bbe7c1; border-radius:11px; padding:18px; }
+    .creds h3 { font-size:13px; text-transform:uppercase; letter-spacing:1px; color:var(--green-dark); margin-bottom:12px; }
+    .cred-row { display:flex; justify-content:space-between; gap:10px; padding:7px 0; font-size:14px; border-bottom:1px dashed #cdeed3; align-items:center; }
+    .cred-row:last-child { border-bottom:0; }
+    .cred-row code { background:#fff; border:1px solid #d3ecd7; padding:4px 9px; border-radius:6px; font-size:13px; word-break:break-all; user-select:all; }
+    .warn { font-size:12.5px; color:#b54708; background:#fffaeb; border:1px solid #fedf89; border-radius:8px; padding:9px 12px; margin-top:12px; }
+    .login-link { display:block; text-align:center; margin-top:16px; color:var(--green-dark); font-weight:600; font-size:14px; text-decoration:none; }
+    .muted { color:var(--muted); font-size:13px; margin-top:10px; line-height:1.6; }
+    .brand { text-align:center; font-size:11px; color:#98a2b3; margin-top:18px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="head">
+      <h1>WAMARK Nigeria Limited</h1>
+      <p>Backend installation wizard &mdash; runs once, then locks itself.</p>
+    </div>
+    <div class="body">
+      <span class="step-label" id="stepLabel">Step 1 of 2</span>
+      <h2 id="stepTitle">Server requirements</h2>
+
+      <div id="checksPane">
+        <div class="check"><span class="dot" id="d-php"></span> PHP 8.0+</div>
+        <div class="check"><span class="dot" id="d-sqlite"></span> PDO SQLite extension</div>
+        <div class="check"><span class="dot" id="d-data"></span> api/data folder writable</div>
+        <div class="check"><span class="dot" id="d-key"></span> api/install folder writable</div>
+        <div class="check"><span class="dot" id="d-mail"></span> PHP mail() available</div>
+        <p class="muted">Installing will create the database, seed your site settings and starter gallery, and generate the administrator account. The generated password is shown <strong>once</strong> and must be changed at first login.</p>
+        <button class="btn" id="installBtn" disabled>Run installation</button>
+        <div class="err" id="err"></div>
+      </div>
+
+      <div id="credsPane" class="creds">
+        <h3>Administrator account (save this now)</h3>
+        <div class="cred-row"><span>Email</span><code id="cEmail">&mdash;</code></div>
+        <div class="cred-row"><span>Password</span><code id="cPass">&mdash;</code></div>
+        <div class="warn">⚠ This password will not be shown again. Copy it now — you will be asked to set a new one the first time you sign in.</div>
+        <a class="login-link" id="goLogin" href="/login/">Go to sign in →</a>
+      </div>
+
+      <p class="brand">WAMARK API · installation wizard</p>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var err = document.getElementById('err');
+      function fail(msg) { err.textContent = msg; err.style.display = 'block'; }
+      function dot(id, ok) { document.getElementById(id).className = 'dot ' + (ok ? 'ok' : 'bad'); }
+
+      fetch('install.php', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok) { fail('Wizard could not start: ' + (d.message || d.error)); return; }
+          var c = d.checks || {};
+          dot('d-php', c.php_version); dot('d-sqlite', c.pdo_sqlite);
+          dot('d-data', c.data_writable); dot('d-key', c.install_key); dot('d-mail', c.mail);
+          if (d.ready) { document.getElementById('installBtn').disabled = false; }
+          else { fail('One or more server requirements failed. Fix them in your hosting control panel and reload this page.'); }
+        })
+        .catch(function () { fail('Could not reach the installer. Make sure PHP is enabled for this folder.'); });
+
+      document.getElementById('installBtn').addEventListener('click', function () {
+        var btn = this;
+        btn.disabled = true; btn.textContent = 'Installing…'; err.style.display = 'none';
+        fetch('install.php', { method: 'POST', credentials: 'same-origin' })
+          .then(function (r) { return r.json().then(function (j) { return { s: r.status, j: j }; }); })
+          .then(function (res) {
+            if (!res.j.ok) { fail(res.j.message || res.j.error || 'Installation failed.'); btn.textContent = 'Run installation'; btn.disabled = false; return; }
+            document.getElementById('stepLabel').textContent = 'Step 2 of 2';
+            document.getElementById('stepTitle').textContent = 'Installation complete';
+            document.getElementById('checksPane').style.display = 'none';
+            document.getElementById('credsPane').style.display = 'block';
+            document.getElementById('cEmail').textContent = res.j.admin.email;
+            document.getElementById('cPass').textContent = res.j.admin.password;
+          })
+          .catch(function () { fail('Network error during installation.'); btn.textContent = 'Run installation'; btn.disabled = false; });
+      });
+    })();
+  </script>
+</body>
+</html>

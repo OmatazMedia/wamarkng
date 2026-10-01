@@ -1,0 +1,39 @@
+# Built by Omataz Media — Web Development & Design
+# Website   : https://www.omatazmedia.com.ng
+# Email     : hello@omatazmedia.com.ng
+# Phone     : +234 9024599289, +234 7037373304
+# WhatsApp  : https://wa.me/message/M3QUHNVONY6NK1
+# Social    : @omatazmedia — Facebook · Instagram · X · YouTube
+# GitHub    : https://github.com/omatazmedia
+# Contact   : Johnson Toluwani
+
+# Uploaded gallery media is public, but NOTHING here may execute.
+# (Explicit grant overrides the deny-all in ../.htaccess for this subtree.)
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Allow from all
+</IfModule>
+
+<FilesMatch "\.(?i:php|phtml|php[0-9]|phar|pht|cgi|pl|py|sh|asp|aspx|jsp|shtml)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Belt and braces: kill script handlers in this tree.
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl
+RemoveType .php .phtml
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>

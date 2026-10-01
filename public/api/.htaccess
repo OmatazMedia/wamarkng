@@ -1,0 +1,67 @@
+# Built by Omataz Media — Web Development & Design
+# Website   : https://www.omatazmedia.com.ng
+# Email     : hello@omatazmedia.com.ng
+# Phone     : +234 9024599289, +234 7037373304
+# WhatsApp  : https://wa.me/message/M3QUHNVONY6NK1
+# Social    : @omatazmedia — Facebook · Instagram · X · YouTube
+# GitHub    : https://github.com/omatazmedia
+# Contact   : Johnson Toluwani
+
+# — WAMARK API: route everything through the router, keep internals sealed —
+
+Options -Indexes
+DirectoryIndex index.php index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # config.php, bootstrap.php, install/, data/ (db, mail-spool) — never direct.
+  RewriteRule ^(config\.php|bootstrap\.php|data(/|$)|install(/|$)) index.php [L]
+  # Everything else under /api also funnels through the router.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+# Default-deny for every PHP file, then re-admit only the two entry points.
+<FilesMatch "\.(php|phtml|php[0-9]|phar|pht)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+<Files index.php>
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+  </IfModule>
+</Files>
+<Files install.php>
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+  </IfModule>
+</Files>
+
+# Never serve raw data files or the sqlite database.
+<FilesMatch "\.(sqlite3|sqlite|db|bin|lock)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "same-origin"
+</IfModule>

@@ -1,0 +1,36 @@
+{
+  "name": "wamarkng",
+  "version": "1.0.0",
+  "private": true,
+  "author": {
+    "name": "Omataz Media",
+    "email": "hello@omatazmedia.com.ng",
+    "url": "https://www.omatazmedia.com.ng"
+  },
+  "contact": {
+    "company": "Omataz Media — Web Development & Design",
+    "email": "hello@omatazmedia.com.ng",
+    "phone": ["+234 9024599289", "+234 7037373304"],
+    "whatsapp": "https://wa.me/message/M3QUHNVONY6NK1",
+    "social": "@omatazmedia — Facebook · Instagram · X · YouTube",
+    "github": "https://github.com/omatazmedia",
+    "contactPerson": "Johnson Toluwani"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "api:test": "bash scripts/api-test.sh"
+  },
+  "dependencies": {
+    "next": "15.5.4",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
