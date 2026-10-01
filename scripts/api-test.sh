@@ -206,6 +206,68 @@ expect "message delete ok" "200" "$S"
 read_req GET "/api/index.php?route=admin/messages"
 printf '%s' "$B" | grep -q "\"id\":$MSG_ID," && bad "deleted message still listed" || ok "deleted message gone"
 
+echo "== 7e. User management: CRUD + suspend =="
+get_csrf
+read_req GET "/api/index.php?route=admin/users"
+printf '%s' "$B" | grep -q '"users"' && ok "users list returned" || bad "users list missing: $B"
+
+read_req POST "/api/index.php?route=admin/users/create" "{\"name\":\"Test Editor\",\"email\":\"editor@wamarkng.com\",\"role\":\"editor\"}"
+expect "user create ok" "200" "$S"
+EDITOR_EMAIL=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["user"]["email"] ?? "";')
+EDITOR_PW=$(printf '%s' "$B" | php -r '$d=json_decode(stream_get_contents(STDIN),true); echo $d["password"] ?? "";')
+[ -n "$EDITOR_PW" ] && ok "one-time password returned" || bad "no one-time password"
+
+read_req POST "/api/index.php?route=admin/users/create" "{\"name\":\"Dup\",\"email\":\"editor@wamarkng.com\"}"
+expect "duplicate email rejected (409)" "409" "$S"
+read_req POST "/api/index.php?route=admin/users/create" "{\"name\":\"Bad\",\"email\":\"not-an-email\"}"
+expect "invalid email rejected (422)" "422" "$S"
+
+read_req POST "/api/index.php?route=admin/users/update" "{\"id\":2,\"name\":\"Test Editor Renamed\"}"
+expect "user rename ok" "200" "$S"
+printf '%s' "$B" | grep -q 'Renamed' && ok "rename reflected" || bad "rename missing: $B"
+read_req POST "/api/index.php?route=admin/users/update" "{\"id\":2,\"role\":\"boss\"}"
+expect "invalid role rejected (422)" "422" "$S"
+
+read_req POST "/api/index.php?route=admin/users/update" "{\"id\":2,\"status\":\"suspended\"}"
+expect "suspend ok" "200" "$S"
+printf '%s' "$B" | grep -q '"status":"suspended"' && ok "status suspended" || bad "suspend not reflected: $B"
+
+# Fresh session: suspended user cannot log in.
+SAVE_JAR="$JAR"; JAR="$(mktemp)"; get_csrf
+read_req POST "/api/index.php?route=auth/password" "{\"email\":\"$EDITOR_EMAIL\",\"password\":\"$EDITOR_PW\"}"
+expect "suspended login rejected (403)" "403" "$S"
+printf '%s' "$B" | grep -q '"error":"suspended"' && ok "suspended error shape" || bad "suspended shape: $B"
+rm -f "$JAR"; JAR="$SAVE_JAR"; get_csrf
+
+read_req POST "/api/index.php?route=admin/users/update" "{\"id\":2,\"status\":\"active\"}"
+expect "re-activate ok" "200" "$S"
+read_req POST "/api/index.php?route=admin/users/update" "{\"id\":2,\"password\":\"EditorNewPass1\"}"
+expect "admin password reset ok" "200" "$S"
+printf '%s' "$B" | grep -q '"must_change":true' && ok "reset forces must_change" || bad "must_change not set: $B"
+
+# Editor logs in with the reset password, changes it, then is denied admin routes.
+SAVE_JAR="$JAR"; JAR="$(mktemp)"; get_csrf
+read_req POST "/api/index.php?route=auth/password" "{\"email\":\"$EDITOR_EMAIL\",\"password\":\"EditorNewPass1\"}"
+expect "editor login with reset password" "200" "$S"
+read_req POST "/api/index.php?route=auth/change-password" "{\"new_password\":\"EditorsOwn2Pass\"}"
+expect "editor first-login password change" "200" "$S"
+read_req GET "/api/index.php?route=admin/users"
+expect "editor denied user list (403)" "403" "$S"
+read_req POST "/api/index.php?route=admin/users/create" "{\"name\":\"Nope\",\"email\":\"nope@wamarkng.com\"}"
+expect "editor denied create (403)" "403" "$S"
+read_req POST "/api/index.php?route=auth/logout"
+expect "editor logout ok" "200" "$S"
+rm -f "$JAR"; JAR="$SAVE_JAR"; get_csrf
+
+# Self-protection + delete.
+read_req POST "/api/index.php?route=admin/users/delete" "{\"id\":1}"
+expect "self delete rejected (422)" "422" "$S"
+printf '%s' "$B" | grep -q 'self_delete' && ok "self_delete error shape" || bad "self_delete shape: $B"
+read_req POST "/api/index.php?route=admin/users/delete" "{\"id\":2}"
+expect "user delete ok" "200" "$S"
+read_req GET "/api/index.php?route=admin/users"
+printf '%s' "$B" | grep -q 'editor@wamarkng.com' && bad "deleted user still listed" || ok "deleted user gone"
+
 echo "== 8. Lockout: 4 wrong passwords => 4h email lock =="
 get_csrf
 for i in 1 2 3; do

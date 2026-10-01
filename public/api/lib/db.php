@@ -103,6 +103,11 @@ final class DB
         // columns existed (existing installs keep their data).
         self::addColumn($pdo, 'gallery', 'caption', "TEXT NOT NULL DEFAULT ''");
         self::addColumn($pdo, 'contact_messages', 'read_at', 'INTEGER');
+        // Multi-user support (pre-existing installs migrate in place; the
+        // wizard-created first admin keeps role=admin, status=active).
+        self::addColumn($pdo, 'users', 'role', "TEXT NOT NULL DEFAULT 'admin'");
+        self::addColumn($pdo, 'users', 'status', "TEXT NOT NULL DEFAULT 'active'");
+        self::addColumn($pdo, 'users', 'created_by', 'INTEGER');
     }
 
     private static function addColumn(PDO $pdo, string $table, string $column, string $ddl): void

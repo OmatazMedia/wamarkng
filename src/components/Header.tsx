@@ -25,9 +25,13 @@ import {
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   useEffect(() => {
-    const close = () => setOpen(false);
+    const close = () => {
+      setOpen(false);
+      setAboutOpen(false);
+    };
     window.addEventListener("resize", close);
     return () => window.removeEventListener("resize", close);
   }, []);
@@ -89,8 +93,34 @@ export default function Header() {
             <li>
               <Link href="/">Home</Link>
             </li>
-            <li>
-              <Link href="/about-us/">About</Link>
+            <li
+              className={`nav-has-drop${aboutOpen ? " drop-open" : ""}`}
+              onMouseEnter={() => setAboutOpen(true)}
+              onMouseLeave={() => setAboutOpen(false)}
+            >
+              <button
+                className="nav-drop-btn"
+                aria-haspopup="true"
+                aria-expanded={aboutOpen}
+                onClick={() => setAboutOpen(true)}
+              >
+                About
+                <svg className="nav-caret" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true">
+                  <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </button>
+              <ul className="nav-drop">
+                <li>
+                  <Link href="/about-us/" onClick={() => setAboutOpen(false)}>
+                    About Wamarkng
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/management/" onClick={() => setAboutOpen(false)}>
+                    Our Management
+                  </Link>
+                </li>
+              </ul>
             </li>
             <li>
               <Link href="/services/">Services</Link>

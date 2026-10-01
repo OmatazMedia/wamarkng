@@ -7,46 +7,23 @@
  * Social    : @omatazmedia — Facebook · Instagram · X · YouTube
  * GitHub    : https://github.com/omatazmedia
  * Contact   : Johnson Toluwani
+ *
+ * Our Management page — mirrors the approved design (wamark- Mgt.jpg)
+ * and the live page at https://wamarkng.com/management/ — intro, an
+ * accordion holding the full leadership details (client component), CTA
+ * and Why Choose Us.
  */
 
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
+import LeadershipAccordion from "@/components/LeadershipAccordion";
 
 export const metadata: Metadata = {
   title: "Management — WAMARK Nigeria Limited",
   description:
     "Meet the leadership team driving growth, innovation and operational excellence at WAMARK Nigeria Limited.",
 };
-
-const leaders = [
-  {
-    title: "Chief Executive Officer (CEO)",
-    text: "Provides strategic direction and oversight, driving innovation and growth across our core areas. Our CEO brings extensive experience in leadership and innovation, guiding our team towards achieving exceptional results.",
-    name: "Engr Markson Ogbeide",
-    tag: "CEO",
-  },
-  {
-    title: "Chief Operations Officer (COO)",
-    text: "Oversees day-to-day operations, ensuring seamless delivery of services in security, surveillance, and oil and gas. Our COO is responsible for implementing operational strategies that drive efficiency and effectiveness.",
-    name: "Wasiu Agbaje",
-    tag: "COO",
-  },
-  {
-    title: "Project Manager",
-    text: "Leads project planning and execution, ensuring timely and effective delivery of projects in our core areas. Our Project Manager is skilled in managing complex projects, ensuring client satisfaction and operational excellence.",
-    name: "Gabriel Momoh",
-    tag: "Project Manager",
-    photo: "/images/team-gabriel-momoh.webp",
-  },
-  {
-    title: "Operations Manager",
-    text: "Manages and optimizes business operations, prioritizing client satisfaction and operational excellence. Our Operations Manager is responsible for streamlining processes, reducing costs, and improving overall efficiency.",
-    name: "Babajide Hammed",
-    tag: "Operations Manager",
-    photo: "/images/team-babajide-hammed.webp",
-  },
-];
 
 const whyUs = [
   {
@@ -105,38 +82,12 @@ export default function ManagementPage() {
         </div>
       </section>
 
-      {/* -------- Leadership team -------- */}
+      {/* -------- Leadership accordion -------- */}
       <section style={{ paddingBottom: 90 }}>
-        <div className="container">
+        <div className="container" style={{ maxWidth: 900 }}>
           <span className="sec-tag">Leadership</span>
           <h2 className="sec-title">Our Leadership Team</h2>
-          <div className="leaders-grid">
-            {leaders.map((l) => (
-              <article className="leader-card" key={l.name}>
-                {l.photo ? (
-                  <div className="leader-photo">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={l.photo} alt={l.name} />
-                  </div>
-                ) : (
-                  <div className="leader-photo leader-monogram" aria-hidden="true">
-                    <span>
-                      {l.name
-                        .replace("Engr ", "")
-                        .split(" ")
-                        .map((w) => w[0])
-                        .join("")}
-                    </span>
-                  </div>
-                )}
-                <div className="leader-body">
-                  <span className="leader-role">{l.title}</span>
-                  <h3>{l.name}</h3>
-                  <p>{l.text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+          <LeadershipAccordion />
         </div>
       </section>
 

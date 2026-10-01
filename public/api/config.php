@@ -41,6 +41,10 @@ final class Config
     public const CONTACT_RATE_LIMIT = 3;                // messages per IP per hour
     public const UPLOAD_MAX_BYTES  = 8 * 1024 * 1024;   // 8 MB per upload
 
+    /** Dashboard user roles & statuses (users table). */
+    public const USER_ROLES   = ['admin', 'editor'];
+    public const USER_STATUSES = ['active', 'suspended'];
+
     /** Allowed media extensions for gallery uploads. */
     public const IMAGE_EXTS = ['webp', 'jpg', 'jpeg', 'png', 'gif', 'avif'];
     public const VIDEO_EXTS = ['mp4', 'webm', 'mov', 'm4v'];

@@ -21,16 +21,18 @@ import { jget, jpost, resetCsrf } from "@/components/dashboard/api";
 import GalleryManager from "@/components/dashboard/GalleryManager";
 import MessagesPanel from "@/components/dashboard/MessagesPanel";
 import SettingsPanel from "@/components/dashboard/SettingsPanel";
+import UsersPanel from "@/components/dashboard/UsersPanel";
 
-type User = { email: string; name: string; must_change: boolean };
-type Summary = { messages: number; gallery: number; mail_from: string };
+type User = { email: string; name: string; must_change: boolean; role?: string };
+type Summary = { messages: number; gallery: number; users: number; mail_from: string };
 
-type Tab = "overview" | "gallery" | "messages" | "settings";
+type Tab = "overview" | "gallery" | "messages" | "users" | "settings";
 
 const TAB_TITLES: Record<Tab, string> = {
   overview: "Dashboard",
   gallery: "Gallery Projects",
   messages: "Messages",
+  users: "User Management",
   settings: "Site Settings",
 };
 
@@ -94,7 +96,13 @@ export default function DashboardPage() {
         <aside className="dash-side">
           <div className="dash-brand">WAMARK</div>
           <nav>
-            {(["overview", "gallery", "messages", "settings"] as Tab[]).map((t) => (
+            {([
+              "overview",
+              "gallery",
+              "messages",
+              ...(user.role === "admin" ? (["users"] as Tab[]) : []),
+              "settings",
+            ] as Tab[]).map((t) => (
               <button
                 key={t}
                 className={tab === t ? "dash-link active" : "dash-link"}
@@ -106,7 +114,7 @@ export default function DashboardPage() {
                     ? "Gallery Projects"
                     : t === "messages"
                       ? `Messages${summary ? ` (${summary.messages})` : ""}`
-                      : "Site Settings"}
+                      : TAB_TITLES[t]}
               </button>
             ))}
           </nav>
@@ -164,6 +172,10 @@ export default function DashboardPage() {
                     <strong>{summary?.messages ?? "—"}</strong>
                   </div>
                   <div className="dash-card">
+                    <small>Dashboard users</small>
+                    <strong>{summary?.users ?? "—"}</strong>
+                  </div>
+                  <div className="dash-card">
                     <small>Outgoing mail</small>
                     <strong>{summary?.mail_from ?? "—"}</strong>
                   </div>
@@ -178,6 +190,7 @@ export default function DashboardPage() {
 
             {tab === "gallery" && <GalleryManager />}
             {tab === "messages" && <MessagesPanel />}
+            {tab === "users" && <UsersPanel />}
             {tab === "settings" && <SettingsPanel />}
           </div>
         </div>

@@ -117,7 +117,11 @@ final class Auth
         return self::failState($key)['fails'];
     }
 
-    /** Find an active user by email. */
+    /**
+     * Find a user by email. Suspended users are returned too — the login
+     * route rejects them with a clear message instead of a misleading
+     * 'wrong password' response.
+     */
     public static function userByEmail(string $email): ?array
     {
         $st = DB::pdo()->prepare('SELECT * FROM users WHERE email = ?');
@@ -166,6 +170,32 @@ final class Auth
             'UPDATE users SET locked_until = ?, failed_count = failed_count + 1 WHERE id = ?'
         );
         $st->execute([$until, $userId]);
+    }
+
+    /** Status of a user row: 'active' | 'suspended'. */
+    public static function statusOf(array $user): string
+    {
+        return ($user['status'] ?? 'active') === 'suspended' ? 'suspended' : 'active';
+    }
+
+    /** Role of a user row: 'admin' | 'editor' (anything unknown = editor). */
+    public static function roleOf(array $user): string
+    {
+        return ($user['role'] ?? 'editor') === 'admin' ? 'admin' : 'editor';
+    }
+
+    /**
+     * Generated password for newly created dashboard users: ~14 chars,
+     * unambiguous alphabet, must_change forces a replacement at first login.
+     */
+    public static function generatePassword(): string
+    {
+        $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+        $pw = '';
+        for ($i = 0; $i < 12; $i++) {
+            $pw .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+        }
+        return 'Wm' . $pw . random_int(10, 99);
     }
 
     public static function now(): int

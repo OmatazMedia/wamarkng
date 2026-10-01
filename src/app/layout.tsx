@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Fira_Sans, Roboto } from "next/font/google";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import "./globals.css";
 
 /**
@@ -69,11 +67,7 @@ export default function RootLayout({
         />
         <script dangerouslySetInnerHTML={{ __html: creditScript }} />
       </head>
-      <body className={`${display.variable} ${body.variable}`}>
-        <Header />
-        {children}
-        <Footer />
-      </body>
+      <body className={`${display.variable} ${body.variable}`}>{children}</body>
     </html>
   );
 }
