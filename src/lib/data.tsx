@@ -54,6 +54,27 @@ export const features = [
       </>
     ),
     text: "CCTV, access control, and intrusion protection for businesses.",
+    modalTitle: "Security System Installations",
+    modal: {
+      intro: "Supply and Installation of Security Equipment and Access Control.",
+      bullets: [
+        "Supply and Installation of Access control system and solutions.",
+        "CCTV Installation.",
+        "Metal detector, Baggage Scanner, Explosive detector",
+        "Supply of Overt and Covert Bulletproof Jackets",
+        "Cooperate Security layout and planning.",
+        "Provision of coordinated corporate vehicle tracking systems.",
+        "Supply and Installation of Sensor based Intrusion systems.",
+        "Supply and Installation of Anti-finger metal security fencing (Interior and Exterior).",
+        "Setting up security center for Command, Control and Surveillance.",
+        "Cyber security Training.",
+      ],
+      images: [
+        "/images/cctv.webp",
+        "/images/airport-detector.webp",
+        "/images/cybersecurity-1.webp",
+      ],
+    },
   },
   {
     no: "02",
@@ -66,6 +87,24 @@ export const features = [
       </>
     ),
     text: "Advanced detection and counter-surveillance solutions.",
+    modalTitle: "Technical Surveillance",
+    modal: {
+      intro:
+        "PROVISION OF TECHNICAL SURVEILLANCE (TSU) EQUIPMENT, TECHNICAL SURVEILLANCE COUNTERMEASURES (TSCM), CONSULTANCY SERVICES TO GOVERNMENT AGENCIES, MULTINATIONAL CORPORATIONS, AND VIP'S.",
+      bullets: [
+        "Supply of Tactical and Strategic System – Real time Multi-technical Services",
+        "Electronic eavesdropping detection.",
+        "Anti-surveillance services.",
+        "Covert camera and transmitter detection",
+        "Technical security.",
+        "Vetting of Individuals and Cooperate organizations.",
+      ],
+      images: [
+        "/images/imsi-catcher-system.webp",
+        "/images/project-at-12-07-55_f4d81555.webp",
+        "/images/airport-detector.webp",
+      ],
+    },
   },
   {
     no: "03",
@@ -78,6 +117,22 @@ export const features = [
       </>
     ),
     text: "Expert pipeline, plant, and flow measurement services.",
+    modalTitle: "Oil & Gas Solutions",
+    modal: {
+      intro: "Oil and Gas Services Includes:",
+      bullets: [
+        "Flow Measurement Technology.",
+        "Fire and Gas Systems.",
+        "Plant Installations and Pipeline Maintenance.",
+        "Pipeline Security and Surveillance.",
+        "Oil and Gas Measurement/Equipment",
+      ],
+      images: [
+        "/images/oilgas.webp",
+        "/images/project-0005.webp",
+        "/images/project-3.webp",
+      ],
+    },
   },
 ];
 

@@ -51,23 +51,93 @@ function Hero() {
   );
 }
 
-/* ================= Feature cards ================= */
+/* ================= Feature cards + detail modal ================= */
 function Features() {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const open = openIdx === null ? null : features[openIdx];
+
+  // Close on Escape and lock page scroll while the modal is up.
+  useEffect(() => {
+    if (openIdx === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenIdx(null);
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [openIdx]);
+
   return (
     <section className="features">
       <div className="container features-grid">
-        {features.map((f) => (
-          <div className="feature-card" key={f.no}>
+        {features.map((f, i) => (
+          <button
+            type="button"
+            className="feature-card feature-click"
+            key={f.no}
+            onClick={() => setOpenIdx(i)}
+            aria-haspopup="dialog"
+            aria-label={`${f.modalTitle} — view details`}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={f.icon} alt="" aria-hidden="true" />
             <h3>{f.title}</h3>
             <p>{f.text}</p>
-            <a className="link-more" href="/services/">
+            <span className="link-more">
               Learn More <IconArrowRight />
-            </a>
-          </div>
+            </span>
+          </button>
         ))}
       </div>
+
+      {open && (
+        <div className="fmodal-overlay" onClick={() => setOpenIdx(null)}>
+          <div
+            className="fmodal"
+            role="dialog"
+            aria-modal="true"
+            aria-label={open.modalTitle}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="fmodal-close"
+              aria-label="Close dialog"
+              onClick={() => setOpenIdx(null)}
+            >
+              ✕
+            </button>
+
+            <div className="fmodal-head">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={open.icon} alt="" aria-hidden="true" />
+              <h3>{open.modalTitle}</h3>
+              <span className="fmodal-no" aria-hidden="true">
+                {open.no}
+              </span>
+            </div>
+
+            <p className="fmodal-intro">{open.modal.intro}</p>
+
+            <ul className="fmodal-list">
+              {open.modal.bullets.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+
+            <div className="fmodal-imgs">
+              {open.modal.images.map((src) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={src} alt="" aria-hidden="true" key={src} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
