@@ -14,8 +14,22 @@ import type { NextConfig } from "next";
  * (upload the contents of ./out to the cPanel public_html directory).
  */
 const nextConfig: NextConfig = {
-  output: "export",
-  trailingSlash: true,
+  output: "standalone",
+  skipTrailingSlashRedirect: true,
+  rewrites: async () => [
+    {
+      source: "/api/index.php",
+      destination: "/api",
+    },
+    {
+      source: "/api/install.php",
+      destination: "/api/install",
+    },
+    {
+      source: "/api/install/install.php",
+      destination: "/api/install",
+    },
+  ],
   images: {
     unoptimized: true,
   },

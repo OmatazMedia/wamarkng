@@ -33,7 +33,7 @@ export default function ContactPage() {
       <section className="section">
         <div className="container contact-page-grid">
           {/* -------- Form -------- */}
-          <div className="contact-form-card">
+          <div className="contact-form-card" id="contact-form">
             <span className="form-tag">Drop Us A Line</span>
             <h2>Send Your Message</h2>
             <p className="form-note">

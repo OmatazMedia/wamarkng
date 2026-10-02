@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageHero from "@/components/PageHero";
 import { services } from "@/lib/data";
+import { IconArrowRight } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Services — WAMARK Nigeria Limited",
@@ -20,21 +21,12 @@ export const metadata: Metadata = {
     "Technical surveillance & countermeasures, oil & gas services, security systems installation, fire & safety, cybersecurity and corporate security planning.",
 };
 
-const servicePages: Record<string, string> = {
-  "Technical Surveillance & Countermeasures": "/contact-us/",
-  "Oil & Gas Services": "/contact-us/",
-  "Security Systems Installation": "/contact-us/",
-  "Fire & Safety Systems": "/contact-us/",
-  "Cybersecurity Services": "/contact-us/",
-  "Corporate Security Planning": "/contact-us/",
-};
-
 export default function ServicesPage() {
   return (
     <main>
       <PageHero title="Services" crumb="Services" />
 
-      <section className="section">
+      <section className="section services-section">
         <div className="container">
           <span className="sec-tag">What We Do</span>
           <h2 className="sec-title">Our Services</h2>
@@ -44,17 +36,22 @@ export default function ServicesPage() {
                 <div className="service-thumb">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.image} alt={s.title} />
-                  <span className="service-icon">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={s.icon} alt="" aria-hidden="true" />
-                  </span>
                 </div>
+                <span className="service-icon" aria-hidden="true">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.icon} alt="" aria-hidden="true" />
+                </span>
                 <div className="service-body">
                   <h3>{s.title}</h3>
                   <p>{s.text}</p>
-                  <Link className="link-more" href={servicePages[s.title] ?? "/contact-us/"}>
-                    Read More <svg viewBox="0 0 512 512" fill="currentColor" width="17" height="17" aria-hidden="true"><path d="M256 8c137 0 248 111 248 248S393 504 256 504 8 393 8 256 119 8 256 8zm-28.9 143.6l75.5 72.4H120c-13.3 0-24 10.7-24 24v16c0 13.3 10.7 24 24 24h182.6l-75.5 72.4c-9.7 9.3-9.9 24.8-.4 34.3l11 10.9c9.4 9.4 24.6 9.4 33.9 0L404.3 273c9.4-9.4 9.4-24.6 0-33.9L271.6 106.3c-9.4-9.4-24.6-9.4-33.9 0l-11 10.9c-9.5 9.6-9.3 25.1.4 34.4z" /></svg>
-                  </Link>
+                  <div className="service-btn-wrap">
+                    <Link
+                      className="link-more"
+                      href={`/contact-us/?service=${encodeURIComponent(s.title)}#contact-form`}
+                    >
+                      Engage Service <IconArrowRight />
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

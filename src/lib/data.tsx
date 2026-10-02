@@ -268,26 +268,42 @@ export const portfolio = [
   "/images/project-1-780x694.webp",
   "/images/cctv.webp",
   "/images/oilgas.webp",
+  "/images/project-3.webp",
+  "/images/airport-detector.webp",
+  "/images/imsi-catcher-system.webp",
+  "/images/cybersecurity-1.webp",
 ];
 
 export const posts = [
   {
-    title: "Test Post 3",
+    title: "Supply & Installation of Security Equipment & Access Control",
     date: "September 4, 2025",
     image: "/images/picture1.webp",
-    excerpt: "Test Post 3",
+    excerpt: "Modern facility protection strategies for corporate headquarters, public utilities, and critical infrastructure across Nigeria.",
   },
   {
-    title: "Test Post 2",
-    date: "September 4, 2025",
+    title: "Advanced CCTV Surveillance & Central Monitoring Command",
+    date: "August 28, 2025",
     image: "/images/cctv.webp",
-    excerpt: "Test Post 2",
+    excerpt: "How intelligent camera positioning, high-resolution optics, and remote feeds provide 24/7 visibility and threat deterrence.",
   },
   {
-    title: "Test Post 1",
-    date: "September 4, 2025",
+    title: "Coordinated Vehicle Tracking & Mobile Asset Intelligence",
+    date: "August 15, 2025",
     image: "/images/vehicle-tracking.webp",
-    excerpt: "Test Post 1",
+    excerpt: "GPS telemetry, anti-jamming safeguards, and live asset tracking for mission-critical logistics and VIP convoys.",
+  },
+  {
+    title: "Technical Surveillance Countermeasures (TSCM) Essentials",
+    date: "July 22, 2025",
+    image: "/images/airport-detector.webp",
+    excerpt: "Detecting covert listening devices, hidden cameras, and electronic eavesdropping in sensitive executive boardrooms.",
+  },
+  {
+    title: "Specialized Oil & Gas Flow Measurement & Plant Maintenance",
+    date: "July 10, 2025",
+    image: "/images/oilgas.webp",
+    excerpt: "Calibration, safety compliance, and instrumentation engineering driving operational excellence across facilities.",
   },
 ];
 

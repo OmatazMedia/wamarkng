@@ -17,17 +17,20 @@
     "contactPerson": "Johnson Toluwani"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3000 -H 0.0.0.0",
+    "lint": "tsc --noEmit",
     "api:test": "bash scripts/api-test.sh"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "next": "15.5.4",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
